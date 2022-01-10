@@ -6,8 +6,8 @@ pipeline {
     agent any
 	environment {
 		USER = 'nasiya'
-		REP = 'petclinic'
-		VERSION = '2.5.0-SNAPSHOT'
+		REP = 'mypetclinic'
+		VERSION = 'latest'
 		ART_ID = 'spring-petclinic'
 		NET_PET = UUID.randomUUID().toString()
 		CURL_NAME = UUID.randomUUID().toString()
