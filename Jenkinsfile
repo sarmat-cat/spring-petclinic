@@ -5,7 +5,7 @@ def CHECK_CURL(String OUTPUT) {
 pipeline {
     agent any
 	environment {
-		USER = 'puffik4ever'
+		USER = 'nasiya'
 		REP = 'petclinic'
 		VERSION = '2.5.0-SNAPSHOT'
 		ART_ID = 'spring-petclinic'
