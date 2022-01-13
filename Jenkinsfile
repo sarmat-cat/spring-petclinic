@@ -27,7 +27,7 @@ pipeline
 				echo 'Network created!'
             }
         }
-		stage("create image") 
+		stage("Сreate docker image") 
 		{
 			steps 
 			{
@@ -39,7 +39,7 @@ pipeline
 				echo "Done"
 			}
         }
-		stage("Push image") 
+		stage("Push into docker image") 
 		{
 			steps 
 			{
@@ -63,7 +63,7 @@ pipeline
 				echo "Done!"
             }
         }
-		stage("Run image from hub") 
+		stage("Run image from docker hub") 
 		{
             steps 
 			{
