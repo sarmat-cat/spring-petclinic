@@ -86,7 +86,6 @@ pipeline
 	{
 		always
 		{
-            sh "docker container rm ${PET_NAME}"
 			sh "docker network rm ${NET_PET}"
 		}
 	}
