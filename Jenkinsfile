@@ -1,88 +1,114 @@
-def CHECK_CURL(String OUTPUT) {
+def CHECK_CURL(String OUTPUT) 
+{
     return OUTPUT.contains('PetClinic :: a Spring Framework demonstration')
 }
 
-pipeline {
+pipeline 
+{
     agent any
-	environment {
-		USER = 'nasiya'
-		REP = 'mypetclinic'
-		VERSION = 'latest'
-		ART_ID = 'spring-petclinic'
-		NET_PET = UUID.randomUUID().toString()
-		CURL_NAME = UUID.randomUUID().toString()
-		PET_NAME = UUID.randomUUID().toString()
+	environment 
+	{
+		USER 		= 'nasiya'
+		REP 		= 'mypetclinic'
+		VERSION 	= 'latest'
+		ART_ID 		= 'spring-petclinic'
+		NET_PET 	= UUID.randomUUID().toString()
+		CURL_NAME 	= UUID.randomUUID().toString()
+		PET_NAME 	= UUID.randomUUID().toString()
 	}
-    stages {
-        stage("create nerwork") {
-            steps {
-                echo 'Im just sayin'
-				echo 'open'
-				bat "docker network create ${NET_PET}"
+    stages 
+	{
+        stage("Creating network") 
+		{
+            steps 
+			{
+                echo 'Creating network...'
+				sh "docker network create ${NET_PET}"
+				echo 'Network created!'
             }
         }
-		stage("create docker image") {
-			steps {
-				echo "building the image"
-				script {
+		stage("Build image") 
+		{
+			steps 
+			{
+				echo "Building image..."
+				script 
+				{
 					docker.build("${USER}/${REP}:${VERSION}", "--build-arg JAR_VERSION=${VERSION} --build-arg JAR_ARTIFACT_ID=${ART_ID} -f Dockerfile .")
 				}
+				echo "Done"
 			}
         }
-		stage("push into docker image") {
-			steps {
-				withCredentials([usernamePassword(credentialsId: 'credentials_dockerhub', passwordVariable: 'pass_dockerhub', usernameVariable: 'user_dockerhub')]) {
+		stage("Push image") 
+		{
+			steps 
+			{
+				echo "Pushing image..."
+				withCredentials([usernamePassword(credentialsId: 'credentials_dockerhub', passwordVariable: 'pass_dockerhub', usernameVariable: 'user_dockerhub')]) 
+				{
 					echo "loging in Docker Hub"
-					bat "echo ${pass_dockerhub}| docker login -u ${user_dockerhub} --password-stdin"
+					sh "echo ${pass_dockerhub}| docker login -u ${user_dockerhub} --password-stdin"
 					echo "pushing into Docker Hub"
-					bat "docker push ${USER}/${REP}:${VERSION}"
+					sh "docker push ${USER}/${REP}:${VERSION}"
 				}
+				echo "Done!"
 			}
 		}
-		stage("curl") {
-            steps {
-				bat "docker pull curlimages/curl:7.81.0"
-				echo "pull curl, yo"
+		stage("Pull curl") 
+		{
+            steps 
+			{
+				echo "Pulling curl..."
+				sh "docker pull curlimages/curl:latest"
+				echo "Done!"
             }
         }
-		stage("run from Docker Hub") {
-            steps {
-				echo "pulling from Docker Hub"
-                bat "docker pull ${USER}/${REP}:${VERSION}"
-				echo "run the app"
-				bat "docker run --name ${PET_NAME} -d --network ${NET_PET} -p 3000:3000 ${USER}/${REP}:${VERSION}"
-				echo "now it is curl time"
+		stage("Run image from hub") 
+		{
+            steps 
+			{
+				echo "Pulling image..."
+                sh "docker pull ${USER}/${REP}:${VERSION}"
+				echo "Done!"
+				echo "Running image..."
+				sh "docker run --name ${PET_NAME} -d --network ${NET_PET} -p 3000:3000 ${USER}/${REP}:${VERSION}"
+				echo "Done!"
             }
         }
-		stage("run curl") {
-            steps {
-				echo "run curl container"
-				script {
-					sleep(60)
-					def PET_IP = bat (
+		stage("Run curl") 
+		{
+            steps 
+			{
+				echo "Running curl image..."
+				sleep(30)
+				script 
+				{
+					def PET_IP = sh (
                         script: "docker inspect -f '{{range.NetworkSettings.Networks}}{{.Gateway}}{{end}}' ${PET_NAME}",
                         returnStdout: true).trim().split(" ").last().replace("\'", "").trim()
 					println("get IP: ${PET_IP}")
-					def RESULT = bat (script: "docker run --name ${CURL_NAME} --rm --network ${NET_PET} curlimages/curl:7.81.0 -L -v ${PET_IP}:3000/",
+					def RESULT = sh (script: "docker run --name ${CURL_NAME} --rm --network ${NET_PET} curlimages/curl:7.81.0 -L -v ${PET_IP}:3000/ --fail-with-body",
 										  returnStdout: true)
-					if (CHECK_CURL(RESULT)) {
-							println("SUCCESS")
-						} 
-					else {
-							println("FAIL")
-						}
+					if (CHECK_CURL(RESULT)) 
+					{
+						println("SUCCESS")
+					} 
+					else 
+					{
+						println("FAIL")
+					}
 				}
             }
         }
     }
-	post {
-		always{
-			bat "docker stop ${PET_NAME}"
-            bat "docker container rm ${PET_NAME}"
-			bat "docker network rm ${NET_PET}"
+	post 
+	{
+		always
+		{
+			sh "docker stop ${PET_NAME}"
+            sh "docker container rm ${PET_NAME}"
+			sh "docker network rm ${NET_PET}"
 		}
 	}
 	
 }
-
-				
