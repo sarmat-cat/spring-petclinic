@@ -8,8 +8,8 @@ pipeline
     agent any
 	environment 
 	{
-		USER 		= 'xarconle'
-		REP 		= 'xarconle-petclinic'
+		USER 		= 'nasiya'
+		REP 		= 'mypetclinic'
 		VERSION 	= 'latest'
 		ART_ID 		= 'spring-petclinic'
 		NET_PET 	= UUID.randomUUID().toString()
