@@ -69,7 +69,7 @@ pipeline
 							client.inside("--network ${NET_PET}") 
 							{
 								echo "I'm client!"
-								sh "sleep 300"
+								sh "sleep 60"
 								sh "curl -S --fail http://app:3000 > curl_output.txt"
 								sh "cat curl_output.txt"
 								archiveArtifacts artifacts: 'curl_output.txt'
