@@ -70,7 +70,7 @@ pipeline
 							{
 								echo "I'm client!"
 								sh "sleep 300"
-								sh "curl -S --fail http://app:8080 > curl_output.txt"
+								sh "curl -S --fail http://app:3000 > curl_output.txt"
 								sh "cat curl_output.txt"
 								archiveArtifacts artifacts: 'curl_output.txt'
 							}
