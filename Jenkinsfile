@@ -8,8 +8,8 @@ pipeline
     agent any
 	environment 
 	{
-		USER 		= 'nasiya'
-		REP 		= 'mypetclinic'
+		USER 		= 'xarconle'
+		REP 		= 'xarconle-petclinic'
 		VERSION 	= 'latest'
 		ART_ID 		= 'spring-petclinic'
 		NET_PET 	= UUID.randomUUID().toString()
@@ -18,7 +18,7 @@ pipeline
 	}
     stages 
 	{
-        stage("Create network") 
+        stage("Creating network") 
 		{
             steps 
 			{
@@ -27,7 +27,7 @@ pipeline
 				echo 'Network created!'
             }
         }
-		stage("Сreate docker image") 
+		stage("Build image") 
 		{
 			steps 
 			{
@@ -39,7 +39,33 @@ pipeline
 				echo "Done"
 			}
         }
-		stage("Push into docker image") 
+		stage("Check") 
+		{
+			steps 
+			{
+				script 
+				{
+					def app = docker.image("${USER}/${REP}:${VERSION}")
+					def client = docker.image("curlimages/curl:latest")
+
+					withDockerNetwork
+					{ n ->
+						app.withRun("--name app --network ${NET_PET}") 
+						{ c ->
+							client.inside("--network ${NET_PET}") 
+							{
+								echo "I'm client!"
+								sh "sleep 60"
+								sh "curl -S --fail http://app:8080 > curl_output.txt"
+								sh "cat curl_output.txt"
+								archiveArtifacts artifacts: 'curl_output.txt'
+							}
+						}
+					}
+				}
+			}
+		}
+		stage("Push image") 
 		{
 			steps 
 			{
@@ -54,58 +80,12 @@ pipeline
 				echo "Done!"
 			}
 		}
-		stage("Curl") 
-		{
-            steps 
-			{
-				echo "Pulling curl..."
-				sh "docker pull curlimages/curl:latest"
-				echo "Done!"
-            }
-        }
-		stage("Run image from docker hub") 
-		{
-            steps 
-			{
-				echo "Pulling image..."
-                sh "docker pull ${USER}/${REP}:${VERSION}"
-				echo "Done!"
-				echo "Running image..."
-				sh "docker run --name ${PET_NAME} -d --network ${NET_PET} -p 3000:3000 ${USER}/${REP}:${VERSION}"
-				echo "Done!"
-            }
-        }
-		stage("Run curl") 
-		{
-            steps 
-			{
-				echo "Running curl image..."
-				sleep(30)
-				script 
-				{
-					def PET_IP = sh (
-                        script: "docker inspect -f '{{range.NetworkSettings.Networks}}{{.Gateway}}{{end}}' ${PET_NAME}",
-                        returnStdout: true).trim().split(" ").last().replace("\'", "").trim()
-					println("get IP: ${PET_IP}")
-					def RESULT = sh (script: "docker run --name ${CURL_NAME} --rm --network ${NET_PET} curlimages/curl:7.81.0 -L -v ${PET_IP}:3000/ --fail-with-body",
-										  returnStdout: true)
-					if (CHECK_CURL(RESULT)) 
-					{
-						println("SUCCESS")
-					} 
-					else 
-					{
-						println("FAIL")
-					}
-				}
-            }
-        }
+
     }
 	post 
 	{
 		always
 		{
-			sh "docker stop ${PET_NAME}"
             sh "docker container rm ${PET_NAME}"
 			sh "docker network rm ${NET_PET}"
 		}
