@@ -18,7 +18,7 @@ pipeline
 	}
     stages 
 	{
-        stage("Creating network") 
+        stage("Create network") 
 		{
             steps 
 			{
@@ -27,7 +27,7 @@ pipeline
 				echo 'Network created!'
             }
         }
-		stage("Build image") 
+		stage("create image") 
 		{
 			steps 
 			{
@@ -54,7 +54,7 @@ pipeline
 				echo "Done!"
 			}
 		}
-		stage("Pull curl") 
+		stage("Curl") 
 		{
             steps 
 			{
