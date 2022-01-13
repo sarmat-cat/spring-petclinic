@@ -32,7 +32,7 @@ pipeline
 	}
     stages 
 	{
-        stage("Creating network") 
+        stage("Create network") 
 		{
             steps 
 			{
@@ -41,7 +41,7 @@ pipeline
 				echo 'Network created!'
             }
         }
-		stage("Build image") 
+		stage("Create image") 
 		{
 			steps 
 			{
